@@ -20,16 +20,15 @@ const addPokemon = async (req: Request, res: Response) => {
     const { name } = req.params;
 
     // Check cache
-    const cacheData = await getCache(name);
+    const cacheData = getCache(name);
     let pokemonData;
     if (cacheData) {
       pokemonData = JSON.parse(cacheData);
     } else {
       pokemonData = await getPokemonFromApi(name);
-      await setCache(name, JSON.stringify(pokemonData), 3600); // Cache for 1 hour
+      setCache(name, JSON.stringify(pokemonData), 3600); // Cache for 1 hour
     }
 
-    
     const newPokemon = new Pokemon(pokemonData);
     await newPokemon.save();
     res.status(201).send(newPokemon);
@@ -66,6 +65,15 @@ const deletePokemonByName = async (req: Request, res: Response) => {
   }
 };
 
+const listPokemons = async (_req: Request, res: Response) => {
+  try {
+    const pokemons = await Pokemon.find();
+    res.status(200).send(pokemons);
+  } catch (error) {
+    res.status(500).send({ error: 'Failed to retrieve Pokémon list' });
+  }
+};
+
 const deletePokemonByType = async (req: Request, res: Response) => {
   try {
     const { type } = req.params;
@@ -80,13 +88,4 @@ const deletePokemonByType = async (req: Request, res: Response) => {
   }
 };
 
-const listPokemons = async (_req: Request, res: Response) => {
-  try {
-    const pokemons = await Pokemon.find();
-    res.status(200).send(pokemons);
-  } catch (error) {
-    res.status(500).send({ error: 'Failed to retrieve Pokémon list' });
-  }
-};
-
-export { addPokemon, deletePokemonById, deletePokemonByName, listPokemons , deletePokemonByType };
+export { addPokemon, deletePokemonById, deletePokemonByName, listPokemons, deletePokemonByType };
